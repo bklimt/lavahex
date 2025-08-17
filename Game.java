@@ -1,8 +1,8 @@
 import java.util.ArrayList;
 
 public class Game {
-    public static final int ROWS = 9;
-    public static final int COLUMNS = 5;
+    public static final int ROWS = 19;
+    public static final int COLUMNS = 10;
 
     public static class Tile {
         enum HoverState {
@@ -11,7 +11,17 @@ public class Game {
             PARTIAL;
         }
 
+        enum State {
+            NONE,
+            BLUE,
+            LIGHT_BLUE,
+            RED,
+            LIGHT_RED,
+            GRAY,
+        }
+
         public HoverState hover = HoverState.NONE;
+        public State state = State.NONE;
     }
 
     private ArrayList<ArrayList<Tile>> tiles = new ArrayList<>();
@@ -29,10 +39,13 @@ public class Game {
             }
             tiles.add(array);
         }
+
+        setRed(0, COLUMNS / 2 - 1);
+        setBlue(ROWS - 1, COLUMNS / 2 - 1);
     }
 
     public boolean isShortRow(int row) {
-        return row % 2 != 0;
+        return row % 2 == 0;
     }
 
     public Tile getTile(int row, int column) {
@@ -58,6 +71,38 @@ public class Game {
         return true;
     }
 
+    private ArrayList<Tile> getNeighbors(int row, int column) {
+        ArrayList<Tile> neighbors = new ArrayList<>();
+        if (isValid(row - 2, column)) {
+            neighbors.add(getTile(row - 2, column));
+        }
+        if (isValid(row + 2, column)) {
+            neighbors.add(getTile(row + 2, column));
+        }
+        if (isValid(row - 1, column)) {
+            neighbors.add(getTile(row - 1, column));
+        }
+        if (isValid(row + 1, column)) {
+            neighbors.add(getTile(row + 1, column));
+        }
+        if (!isShortRow(row)) {
+            if (isValid(row - 1, column - 1)) {
+                neighbors.add(getTile(row - 1, column - 1));
+            }
+            if (isValid(row + 1, column - 1)) {
+                neighbors.add(getTile(row + 1, column - 1));
+            }
+        } else {
+            if (isValid(row - 1, column + 1)) {
+                neighbors.add(getTile(row - 1, column + 1));
+            }
+            if (isValid(row + 1, column + 1)) {
+                neighbors.add(getTile(row + 1, column + 1));
+            }
+        }
+        return neighbors;
+    }
+
     public void setHover(int row, int column) {
         for (ArrayList<Tile> array : tiles) {
             for (Tile tile : array) {
@@ -66,31 +111,34 @@ public class Game {
         }
 
         getTile(row, column).hover = Tile.HoverState.HOVER;
-        if (isValid(row - 2, column)) {
-            getTile(row - 2, column).hover = Tile.HoverState.PARTIAL;
+
+        for (Tile neighbor : getNeighbors(row, column)) {
+            neighbor.hover = Tile.HoverState.PARTIAL;
         }
-        if (isValid(row + 2, column)) {
-            getTile(row + 2, column).hover = Tile.HoverState.PARTIAL;
-        }
-        if (isValid(row - 1, column)) {
-            getTile(row - 1, column).hover = Tile.HoverState.PARTIAL;
-        }
-        if (isValid(row + 1, column)) {
-            getTile(row + 1, column).hover = Tile.HoverState.PARTIAL;
-        }
-        if (!isShortRow(row)) {
-            if (isValid(row - 1, column - 1)) {
-                getTile(row - 1, column - 1).hover = Tile.HoverState.PARTIAL;
+    }
+
+    public void setRed(int row, int column) {
+        Tile tile = getTile(row, column);
+        tile.state = Tile.State.RED;
+        for (Tile neighbor : getNeighbors(row, column)) {
+            if (neighbor.state == Tile.State.NONE) {
+                neighbor.state = Tile.State.LIGHT_RED;
             }
-            if (isValid(row + 1, column - 1)) {
-                getTile(row + 1, column - 1).hover = Tile.HoverState.PARTIAL;
+            if (neighbor.state == Tile.State.LIGHT_BLUE) {
+                neighbor.state = Tile.State.GRAY;
             }
-        } else {
-            if (isValid(row - 1, column + 1)) {
-                getTile(row - 1, column + 1).hover = Tile.HoverState.PARTIAL;
+        }
+    }
+
+    public void setBlue(int row, int column) {
+        Tile tile = getTile(row, column);
+        tile.state = Tile.State.BLUE;
+        for (Tile neighbor : getNeighbors(row, column)) {
+            if (neighbor.state == Tile.State.NONE) {
+                neighbor.state = Tile.State.LIGHT_BLUE;
             }
-            if (isValid(row + 1, column + 1)) {
-                getTile(row + 1, column + 1).hover = Tile.HoverState.PARTIAL;
+            if (neighbor.state == Tile.State.LIGHT_RED) {
+                neighbor.state = Tile.State.GRAY;
             }
         }
     }

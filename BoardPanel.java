@@ -2,16 +2,17 @@
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Polygon;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.util.ArrayList;
 import javax.swing.JPanel;
 
 public class BoardPanel extends JPanel {
-    public static final int TILE_WIDTH = 100;
+    public static final int TILE_WIDTH = 60;
     public static final int TILE_HEIGHT = (int) (Math.sin(Math.PI / 3.0) * TILE_WIDTH);
     public static final int START_X = TILE_WIDTH;
-    public static final int START_Y = 100;
+    public static final int START_Y = 60;
 
     Game game = new Game();
 
@@ -60,6 +61,33 @@ public class BoardPanel extends JPanel {
                     }
                 }
             }
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                for (Hexagon hexagon : hexagons) {
+                    if (hexagon.contains(e.getPoint())) {
+                        game.setHover(hexagon.getRow(), hexagon.getColumn());
+                        BoardPanel.this.repaint();
+                    }
+                }
+            }
+        });
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                for (Hexagon hexagon : hexagons) {
+                    if (hexagon.contains(e.getPoint())) {
+                        Game.Tile tile = hexagon.getTile();
+                        if (tile.state == Game.Tile.State.LIGHT_RED) {
+                            game.setRed(hexagon.getRow(), hexagon.getColumn());
+                        }
+                        if (tile.state == Game.Tile.State.LIGHT_BLUE) {
+                            game.setBlue(hexagon.getRow(), hexagon.getColumn());
+                        }
+                        BoardPanel.this.repaint();
+                    }
+                }
+            }
         });
     }
 
@@ -86,14 +114,29 @@ public class BoardPanel extends JPanel {
         super.paintComponent(g);
 
         for (Hexagon hexagon : hexagons) {
-            /*
-            if (hexagon.getRow() % 2 != 0) {
-                g.setColor(Color.YELLOW);
-            } else {
-                g.setColor(Color.GREEN);
+            Color color = Color.BLACK;
+            Game.Tile tile = hexagon.getTile();
+            switch (tile.state) {
+                case Game.Tile.State.NONE:
+                    color = new Color(1.0f, 0.8f, 0.0f);
+                    break;
+                case Game.Tile.State.RED:
+                    color = Color.RED;
+                    break;
+                case Game.Tile.State.BLUE:
+                    color = Color.BLUE;
+                    break;
+                case Game.Tile.State.LIGHT_RED:
+                    color = new Color(1.0f, 0.4f, 0.4f);
+                    break;
+                case Game.Tile.State.LIGHT_BLUE:
+                    color = new Color(0.4f, 0.4f, 1.0f);
+                    break;
+                case Game.Tile.State.GRAY:
+                    color = new Color(0.5f, 0.5f, 0.5f);
+                    break;
             }
-            */
-            g.setColor(new Color(1.0f, 0.8f, 0.0f));
+            g.setColor(color);
             g.fillPolygon(hexagon);
 
             if (hexagon.getTile().hover == Game.Tile.HoverState.HOVER) {
