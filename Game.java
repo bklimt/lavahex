@@ -4,26 +4,6 @@ public class Game {
     public static final int ROWS = 19;
     public static final int COLUMNS = 10;
 
-    public static class Tile {
-        enum HoverState {
-            NONE,
-            HOVER,
-            PARTIAL;
-        }
-
-        enum State {
-            NONE,
-            BLUE,
-            LIGHT_BLUE,
-            RED,
-            LIGHT_RED,
-            GRAY,
-        }
-
-        public HoverState hover = HoverState.NONE;
-        public State state = State.NONE;
-    }
-
     private ArrayList<ArrayList<Tile>> tiles = new ArrayList<>();
 
     public Game() {
