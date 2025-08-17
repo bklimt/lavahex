@@ -68,7 +68,7 @@ public class BoardPanel extends JPanel {
         int y = START_Y;
         for (int row = 0; row < Game.ROWS; row++) {
             int columns = Game.COLUMNS;
-            if (row % 2 != 0) {
+            if (game.isShortRow(row)) {
                 x += (TILE_WIDTH - TILE_WIDTH / 4);
                 columns--;
             }

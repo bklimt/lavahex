@@ -19,7 +19,7 @@ public class Game {
     public Game() {
         for (int row = 0; row < ROWS; row++) {
             int columns = COLUMNS;
-            if (row % 2 != 0) {
+            if (isShortRow(row)) {
                 columns--;
             }
             ArrayList<Tile> array = new ArrayList<>();
@@ -29,6 +29,10 @@ public class Game {
             }
             tiles.add(array);
         }
+    }
+
+    public boolean isShortRow(int row) {
+        return row % 2 != 0;
     }
 
     public Tile getTile(int row, int column) {
@@ -42,7 +46,7 @@ public class Game {
         if (row >= ROWS) {
             return false;
         }
-        if (row % 2 == 0) {
+        if (!isShortRow(row)) {
             if (column >= COLUMNS) {
                 return false;
             }
@@ -74,7 +78,7 @@ public class Game {
         if (isValid(row + 1, column)) {
             getTile(row + 1, column).hover = Tile.HoverState.PARTIAL;
         }
-        if (row % 2 == 0) {
+        if (!isShortRow(row)) {
             if (isValid(row - 1, column - 1)) {
                 getTile(row - 1, column - 1).hover = Tile.HoverState.PARTIAL;
             }
