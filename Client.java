@@ -14,7 +14,16 @@ public class Client {
             BoardPanel board = new BoardPanel();
             frame.add(board, BorderLayout.CENTER);
 
-            frame.setSize(1024, 768);
+            int width = Game.COLUMNS * BoardPanel.TILE_WIDTH
+                + (Game.COLUMNS - 1) * BoardPanel.TILE_WIDTH / 2
+                + (BoardPanel.START_X - BoardPanel.TILE_WIDTH / 2) * 2;
+            int height = ((Game.ROWS + 1) / 2) * BoardPanel.TILE_HEIGHT
+                + (BoardPanel.START_Y - BoardPanel.TILE_HEIGHT / 2) * 2;
+
+            height += 40; // A guess at the window title bar size.
+
+            frame.setSize(width, height);
+
             frame.setVisible(true);
         });
     }
