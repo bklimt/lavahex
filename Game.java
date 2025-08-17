@@ -24,22 +24,26 @@ public class Game {
         setBlue(ROWS - 1, COLUMNS / 2 - 1);
     }
 
-    public boolean isShortRow(int row) {
+    public static boolean isShortRow(int row) {
         return row % 2 == 0;
     }
 
-    public Tile getTile(int row, int column) {
+    private Tile getTile(int row, int column) {
         return tiles.get(row).get(column);
     }
 
-    private boolean isValid(int row, int column) {
+    public TileView getTileView(int row, int column) {
+        return tiles.get(row).get(column);
+    }
+
+    private static boolean isValid(int row, int column) {
         if (row < 0 || column < 0) {
             return false;
         }
         if (row >= ROWS) {
             return false;
         }
-        if (!isShortRow(row)) {
+        if (!Game.isShortRow(row)) {
             if (column >= COLUMNS) {
                 return false;
             }
@@ -49,6 +53,45 @@ public class Game {
             }
         }
         return true;
+    }
+
+    public static boolean isNeighbor(int row1, int column1, int row2, int column2) {
+        if (!Game.isValid(row1, column1)) {
+            return false;
+        }
+        if (!Game.isValid(row2, column2)) {
+            return false;
+        }
+        if (column1 == column2) {
+            if (row2 == row1 - 2) {
+                return true;
+            }
+            if (row2 == row1 + 2) {
+                return true;
+            }
+            if (row2 == row1 - 1) {
+                return true;
+            }
+            if (row2 == row1 + 1) {
+                return true;
+            }
+        }
+        if (!isShortRow(row1)) {
+            if (row2 == row1 - 1 && column2 == column1 - 1) {
+                return true;
+            }
+            if (row2 == row1 + 1 && column2 == column1 - 1) {
+                return true;
+            }
+        } else {
+            if (row2 == row1 - 1 && column2 == column1 + 1) {
+                return true;
+            }
+            if (row2 == row1 + 1 && column2 == column1 + 1) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private ArrayList<Tile> getNeighbors(int row, int column) {
@@ -81,20 +124,6 @@ public class Game {
             }
         }
         return neighbors;
-    }
-
-    public void setHover(int row, int column) {
-        for (ArrayList<Tile> array : tiles) {
-            for (Tile tile : array) {
-                tile.hover = Tile.HoverState.NONE;
-            }
-        }
-
-        getTile(row, column).hover = Tile.HoverState.HOVER;
-
-        for (Tile neighbor : getNeighbors(row, column)) {
-            neighbor.hover = Tile.HoverState.PARTIAL;
-        }
     }
 
     public void setRed(int row, int column) {

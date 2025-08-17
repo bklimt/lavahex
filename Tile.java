@@ -1,20 +1,9 @@
 
-public class Tile {
-    enum HoverState {
-        NONE,
-        HOVER,
-        PARTIAL;
-    }
-
-    enum State {
-        NONE,
-        BLUE,
-        LIGHT_BLUE,
-        RED,
-        LIGHT_RED,
-        GRAY,
-    }
-
-    public HoverState hover = HoverState.NONE;
+public class Tile implements TileView {
     public State state = State.NONE;
+
+    @Override
+    public TileView.State getState() {
+        return state;
+    }
 }

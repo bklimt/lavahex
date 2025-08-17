@@ -14,8 +14,6 @@ public class BoardPanel extends JPanel {
     public static final int START_X = TILE_WIDTH;
     public static final int START_Y = 60;
 
-    Game game = new Game();
-
     private class Hexagon extends Polygon {
         private final int row;
         private final int column;
@@ -42,11 +40,14 @@ public class BoardPanel extends JPanel {
             return column;
         }
 
-        public Tile getTile() {
-            return game.getTile(row, column);
+        public TileView getTile() {
+            return game.getTileView(row, column);
         }
     }
 
+    private int hoverRow = -1;
+    private int hoverColumn = -1;
+    Game game = new Game();
     private ArrayList<Hexagon> hexagons = new ArrayList<>();
 
     BoardPanel() {
@@ -56,7 +57,7 @@ public class BoardPanel extends JPanel {
             public void mouseMoved(MouseEvent e) {
                 for (Hexagon hexagon : hexagons) {
                     if (hexagon.contains(e.getPoint())) {
-                        game.setHover(hexagon.getRow(), hexagon.getColumn());
+                        setHover(hexagon.getRow(), hexagon.getColumn());
                         BoardPanel.this.repaint();
                     }
                 }
@@ -66,7 +67,7 @@ public class BoardPanel extends JPanel {
             public void mouseDragged(MouseEvent e) {
                 for (Hexagon hexagon : hexagons) {
                     if (hexagon.contains(e.getPoint())) {
-                        game.setHover(hexagon.getRow(), hexagon.getColumn());
+                        setHover(hexagon.getRow(), hexagon.getColumn());
                         BoardPanel.this.repaint();
                     }
                 }
@@ -77,11 +78,11 @@ public class BoardPanel extends JPanel {
             public void mouseReleased(MouseEvent e) {
                 for (Hexagon hexagon : hexagons) {
                     if (hexagon.contains(e.getPoint())) {
-                        Tile tile = hexagon.getTile();
-                        if (tile.state == Tile.State.LIGHT_RED) {
+                        TileView tile = hexagon.getTile();
+                        if (tile.getState() == Tile.State.LIGHT_RED) {
                             game.setRed(hexagon.getRow(), hexagon.getColumn());
                         }
-                        if (tile.state == Tile.State.LIGHT_BLUE) {
+                        if (tile.getState() == Tile.State.LIGHT_BLUE) {
                             game.setBlue(hexagon.getRow(), hexagon.getColumn());
                         }
                         BoardPanel.this.repaint();
@@ -109,14 +110,27 @@ public class BoardPanel extends JPanel {
         }
     }
 
+    private void setHover(int row, int column) {
+        hoverRow = row;
+        hoverColumn = column;
+    }
+
+    private boolean isHover(int row, int column) {
+        return row == hoverRow && column == hoverColumn;
+    }
+
+    private boolean isPartialHover(int row, int column) {
+        return Game.isNeighbor(row, column, hoverRow, hoverColumn);
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
         for (Hexagon hexagon : hexagons) {
             Color color = Color.BLACK;
-            Tile tile = hexagon.getTile();
-            switch (tile.state) {
+            TileView tile = hexagon.getTile();
+            switch (tile.getState()) {
                 case Tile.State.NONE:
                     color = new Color(1.0f, 0.8f, 0.0f);
                     break;
@@ -139,11 +153,10 @@ public class BoardPanel extends JPanel {
             g.setColor(color);
             g.fillPolygon(hexagon);
 
-            if (hexagon.getTile().hover == Tile.HoverState.HOVER) {
+            if (isHover(hexagon.getRow(), hexagon.getColumn())) {
                 g.setColor(new Color(0.0f, 0.0f, 0.0f, 0.5f));
                 g.fillPolygon(hexagon);
-            }
-            if (hexagon.getTile().hover == Tile.HoverState.PARTIAL) {
+            } else if (isPartialHover(hexagon.getRow(), hexagon.getColumn())) {
                 g.setColor(new Color(0.0f, 0.0f, 0.0f, 0.3f));
                 g.fillPolygon(hexagon);
             }
