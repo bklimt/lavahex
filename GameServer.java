@@ -7,19 +7,21 @@ import java.util.ArrayList;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-// TODO: Send the initial state when a client connects.
-
 public class GameServer {
-    private final ArrayList<ObjectOutputStream> outputStreams = new ArrayList<>();
-    private final Object outputStreamsLock = new Object();
+    private static final class Client {
+        ObjectOutputStream outputStream;
+    }
+
+    private final ArrayList<Client> clients = new ArrayList<>();
+    private final Object clientLock = new Object();
 
     private void boardcastTileUpdate(int row, int column, TileView.State state) {
         System.out.println(String.format("broadcasting update of (%d, %d) to %s", row, column, state));
         ServerMessage message = new ServerMessage(new ServerMessage.TileUpdate(row, column, state));
-        synchronized (outputStreamsLock) {
-            for (ObjectOutputStream outputStream : outputStreams) {
+        synchronized (clientLock) {
+            for (Client client : clients) {
                 try {
-                    outputStream.writeObject(message);
+                    client.outputStream.writeObject(message);
                 } catch (IOException e) {
                     System.err.println("unable to send message to client: " + e.getMessage());
                 }
@@ -82,9 +84,10 @@ public class GameServer {
             System.out.println("listening on port 9876");
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                ObjectOutputStream outputStream = new ObjectOutputStream(clientSocket.getOutputStream());
-                synchronized (outputStreamsLock) {
-                    outputStreams.add(outputStream);
+                Client client = new Client();
+                client.outputStream = new ObjectOutputStream(clientSocket.getOutputStream());
+                synchronized (clientLock) {
+                    clients.add(client);
                 }
                 Thread clientThread = new Thread(() -> {
                     try {
