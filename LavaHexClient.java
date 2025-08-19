@@ -14,10 +14,10 @@ public class LavaHexClient {
             BoardPanel board = new BoardPanel();
             frame.add(board, BorderLayout.CENTER);
 
-            int width = Game.COLUMNS * BoardPanel.TILE_WIDTH
-                    + (Game.COLUMNS - 1) * BoardPanel.TILE_WIDTH / 2
+            int width = Board.COLUMNS * BoardPanel.TILE_WIDTH
+                    + (Board.COLUMNS - 1) * BoardPanel.TILE_WIDTH / 2
                     + (BoardPanel.START_X - BoardPanel.TILE_WIDTH / 2) * 2;
-            int height = ((Game.ROWS + 1) / 2) * BoardPanel.TILE_HEIGHT
+            int height = ((Board.ROWS + 1) / 2) * BoardPanel.TILE_HEIGHT
                     + (BoardPanel.START_Y - BoardPanel.TILE_HEIGHT / 2) * 2;
 
             height += 40; // A guess at the window title bar size.

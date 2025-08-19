@@ -10,4 +10,8 @@ public interface TileView {
     }
 
     public State getState();
+
+    public int getRow();
+
+    public int getColumn();
 }

@@ -5,6 +5,7 @@ import java.awt.Polygon;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.io.IOException;
 import java.util.ArrayList;
 import javax.swing.JPanel;
 
@@ -41,17 +42,36 @@ public class BoardPanel extends JPanel {
         }
 
         public TileView getTile() {
-            return game.getTileView(row, column);
+            // return game.getTileView(row, column);
+            return client.getBoard().getTileView(row, column);
         }
     }
 
     private int hoverRow = -1;
     private int hoverColumn = -1;
-    Game game = new Game();
-    private ArrayList<Hexagon> hexagons = new ArrayList<>();
+    // Game game = new Game();
+    private final GameClient client;
+    private final ArrayList<Hexagon> hexagons = new ArrayList<>();
 
     BoardPanel() {
+        client = new GameClient();
+
+        client.setListener(new GameClient.Listener() {
+            @Override
+            public void onBoardUpdate() {
+                BoardPanel.this.repaint();
+            }
+
+            @Override
+            public void onError(Throwable e, boolean fatal) {
+                System.err.println("error: " + e.getMessage());
+            }
+        });
+
         createHexagons();
+
+        client.start();
+
         addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseMoved(MouseEvent e) {
@@ -73,6 +93,7 @@ public class BoardPanel extends JPanel {
                 }
             }
         });
+
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
@@ -80,10 +101,12 @@ public class BoardPanel extends JPanel {
                     if (hexagon.contains(e.getPoint())) {
                         TileView tile = hexagon.getTile();
                         if (tile.getState() == Tile.State.LIGHT_RED) {
-                            game.setRed(hexagon.getRow(), hexagon.getColumn());
+                            // game.setRed(hexagon.getRow(), hexagon.getColumn());
+                            client.setRed(hexagon.getRow(), hexagon.getColumn());
                         }
                         if (tile.getState() == Tile.State.LIGHT_BLUE) {
-                            game.setBlue(hexagon.getRow(), hexagon.getColumn());
+                            // game.setBlue(hexagon.getRow(), hexagon.getColumn());
+                            client.setBlue(hexagon.getRow(), hexagon.getColumn());
                         }
                         BoardPanel.this.repaint();
                     }
@@ -95,9 +118,9 @@ public class BoardPanel extends JPanel {
     private void createHexagons() {
         int x = START_X;
         int y = START_Y;
-        for (int row = 0; row < Game.ROWS; row++) {
-            int columns = Game.COLUMNS;
-            if (game.isShortRow(row)) {
+        for (int row = 0; row < Board.ROWS; row++) {
+            int columns = Board.COLUMNS;
+            if (Board.isShortRow(row)) {
                 x += (TILE_WIDTH - TILE_WIDTH / 4);
                 columns--;
             }
@@ -120,7 +143,7 @@ public class BoardPanel extends JPanel {
     }
 
     private boolean isPartialHover(int row, int column) {
-        return Game.isNeighbor(row, column, hoverRow, hoverColumn);
+        return Board.isNeighbor(row, column, hoverRow, hoverColumn);
     }
 
     @Override

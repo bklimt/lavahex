@@ -11,5 +11,8 @@ all:
 run: all
 	java -cp build LavaHexClient
 
-lint:
+serve: all
+	java -cp build GameServer
+
+format:
 	clang-format -i *.java
