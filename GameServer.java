@@ -18,14 +18,36 @@ public class GameServer {
         ObjectOutputStream outputStream;
     }
 
+    private static final class ClientAndMessage {
+        public UUID client;
+        public ClientMessage message;
+    }
+
     private final ArrayList<Client> clients = new ArrayList<>();
     private final Object clientLock = new Object();
 
-    private void boardcastTileUpdate(int row, int column, TileView.State state) {
+    private void broadcastTileUpdate(int row, int column, TileView.State state) {
         System.out.println(String.format("broadcasting update of (%d, %d) to %s", row, column, state));
         ServerMessage message = new ServerMessage(new ServerMessage.TileUpdate(row, column, state));
         synchronized (clientLock) {
             for (Client client : clients) {
+                try {
+                    client.outputStream.writeObject(message);
+                } catch (IOException e) {
+                    System.err.println("unable to send message to client: " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    private void sendTileUpdate(UUID uuid, int row, int column, TileView.State state) {
+        System.out.println(String.format("sending %s update of (%d, %d) to %s", uuid, row, column, state));
+        ServerMessage message = new ServerMessage(new ServerMessage.TileUpdate(row, column, state));
+        synchronized (clientLock) {
+            for (Client client : clients) {
+                if (!client.uuid.equals(uuid)) {
+                    continue;
+                }
                 try {
                     client.outputStream.writeObject(message);
                 } catch (IOException e) {
@@ -42,15 +64,16 @@ public class GameServer {
         game.getBoard().setListener(new Board.Listener() {
             @Override
             public void onTileUpdated(int row, int column, TileView.State state) {
-                boardcastTileUpdate(row, column, state);
+                broadcastTileUpdate(row, column, state);
             }
         });
 
-        BlockingQueue<ClientMessage> inputQueue = new ArrayBlockingQueue<ClientMessage>(100);
+        BlockingQueue<ClientAndMessage> inputQueue = new ArrayBlockingQueue<>(100);
         Thread inputThread = new Thread(() -> {
             while (true) {
                 try {
-                    ClientMessage message = inputQueue.take();
+                    ClientAndMessage msg = inputQueue.take();
+                    ClientMessage message = msg.message;
                     if (message.setRequest != null) {
                         int row = message.setRequest.row;
                         int column = message.setRequest.column;
@@ -62,7 +85,7 @@ public class GameServer {
                             game.setBlue(row, column);
                         }
                     }
-                    if (message.syncRequest != null) {
+                    if (message.joinRequest != null) {
                         for (int row = 0; row < Board.ROWS; row++) {
                             int columns = Board.COLUMNS;
                             if (Board.isShortRow(row)) {
@@ -71,7 +94,7 @@ public class GameServer {
                             for (int column = 0; column < columns; column++) {
                                 TileView tile = game.getBoard().getTileView(row, column);
                                 if (tile.getState() != TileView.State.NONE) {
-                                    boardcastTileUpdate(row, column, tile.getState());
+                                    sendTileUpdate(msg.client, row, column, tile.getState());
                                 }
                             }
                         }
@@ -91,6 +114,7 @@ public class GameServer {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 Client client = new Client();
+                UUID uuid = client.uuid;
                 client.outputStream = new ObjectOutputStream(clientSocket.getOutputStream());
                 synchronized (clientLock) {
                     clients.add(client);
@@ -101,7 +125,10 @@ public class GameServer {
                         while (true) {
                             try {
                                 ClientMessage message = (ClientMessage) inputStream.readObject();
-                                inputQueue.put(message);
+                                ClientAndMessage clientAndMessage = new ClientAndMessage();
+                                clientAndMessage.client = uuid;
+                                clientAndMessage.message = message;
+                                inputQueue.put(clientAndMessage);
                             } catch (Exception e) {
                                 System.err.println("error reading from client: " + e.getMessage());
                                 break;

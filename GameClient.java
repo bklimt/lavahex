@@ -90,7 +90,7 @@ public class GameClient {
     }
 
     public void sync() {
-        ClientMessage message = new ClientMessage(new ClientMessage.SyncRequest());
+        ClientMessage message = new ClientMessage(new ClientMessage.JoinRequest());
         try {
             queue.put(message);
         } catch (InterruptedException e) {

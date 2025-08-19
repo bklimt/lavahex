@@ -4,16 +4,16 @@ import java.io.Serializable;
  * A message sent over the network.
  */
 public class ClientMessage implements Serializable {
-    ClientMessage(SyncRequest syncRequest) {
-        this.syncRequest = syncRequest;
+    ClientMessage(JoinRequest joinRequest) {
+        this.joinRequest = joinRequest;
     }
 
     ClientMessage(SetRequest setRequest) {
         this.setRequest = setRequest;
     }
 
-    public static class SyncRequest implements Serializable {
-        public SyncRequest() {
+    public static class JoinRequest implements Serializable {
+        public JoinRequest() {
         }
     }
 
@@ -29,6 +29,6 @@ public class ClientMessage implements Serializable {
         }
     }
 
-    public SyncRequest syncRequest = null;
+    public JoinRequest joinRequest = null;
     public SetRequest setRequest = null;
 }
