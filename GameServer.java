@@ -4,11 +4,17 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 public class GameServer {
     private static final class Client {
+        Client() {
+            uuid = UUID.randomUUID();
+        }
+
+        final UUID uuid;
         ObjectOutputStream outputStream;
     }
 
